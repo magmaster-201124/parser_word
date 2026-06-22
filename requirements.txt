@@ -1,0 +1,8 @@
+lxml==6.1.1
+packaging==26.2
+pillow==12.2.0
+PyMuPDF==1.27.2.3
+pymupdf-stubs==1.27.2.2.post2
+pytesseract==0.3.13
+python-docx==1.2.0
+typing_extensions==4.15.0
