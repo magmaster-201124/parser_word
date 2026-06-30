@@ -11,7 +11,6 @@ def extract_contents_from_pages(pdf_path, start_page, end_page):
     doc = fitz.open(pdf_path)
     full_contents = []
 
-    # Обрабатываем только указанные страницы
     for page_num in range(start_page - 1, end_page - 1):
         page = doc.load_page(page_num)
         pix = page.get_pixmap(dpi=300)
