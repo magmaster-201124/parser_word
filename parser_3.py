@@ -11,43 +11,38 @@ def extract_contents_from_pages(pdf_path, start_page, end_page):
     doc = fitz.open(pdf_path)
     full_contents = []
 
-    # Проверяем указанные страницы
-    for page_num in range(start_page - 1, end_page):  # страницы в PDF начинаются с 0
+    # Обрабатываем только указанные страницы
+    for page_num in range(start_page - 1, end_page - 1):
         page = doc.load_page(page_num)
         pix = page.get_pixmap(dpi=300)
         img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
         text = pytesseract.image_to_string(img, lang='rus', config='--psm 6')
-
-        # Добавляем текст страницы к общему содержимому
         full_contents.append(text)
 
-    # Объединяем текст всех страниц
     combined_text = '\n'.join(full_contents)
-
-    # Очистка текста
     cleaned_text = re.sub(r'\s+', ' ', combined_text)
     cleaned_text = cleaned_text.replace('\n', ' ')
 
-    # Разделение на колонки
     mid_index = len(cleaned_text) // 2
     column1 = cleaned_text[:mid_index]
     column2 = cleaned_text[mid_index:]
 
     def process_column(column):
-        # Разделяем строки по точкам с пробелами
         lines = re.split(r'(?<=\d)\s+', column)
         result = []
         for line in lines:
-            # Ищем номер страницы в конце строки
             match = re.search(r'(\d+)$', line)
             if match:
                 page = match.group(1)
                 title = line[:line.rfind(page)].strip()
-                result.append(f"{title}\t{page}")
+                result.append((title, page))
         return result
 
     contents = process_column(column1) + process_column(column2)
-    return '\n'.join(contents)
+
+    contents_sorted = sorted(contents, key=lambda x: int(x[1]))
+
+    return '\n'.join(f"{title}\t{page}" for title, page in contents_sorted)
 
 
 def save_to_word(contents, output_path='contents.docx'):
@@ -69,8 +64,7 @@ def save_to_word(contents, output_path='contents.docx'):
 
 if __name__ == "__main__":
     pdf_path = '3800 задач по физике для школьников и поступающих в ВУЗы.pdf'
-    # Указываем конкретные страницы для извлечения содержания
-    contents = extract_contents_from_pages(pdf_path, 670, 672)  # 672 - так как диапазон левый включительно, правый нет
+    contents = extract_contents_from_pages(pdf_path, 670, 672)
     print("Извлечённое содержание:")
     print(contents)
     save_to_word(contents)
